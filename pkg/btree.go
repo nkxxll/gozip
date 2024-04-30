@@ -22,16 +22,24 @@ func (b *BTree) Traverse() string {
 	return b.head.Traverse("")
 }
 
-func (b *BTree) Build(nodeList []Node) {
+func sortNodeList(nodeList []Node) {
 	sort.Slice(nodeList, func(i, j int) bool {
-		return nodeList[i].rate < nodeList[j].rate
+		return nodeList[i].rate > nodeList[j].rate
 	})
-	// get the last two nodes
-	// add the rates
-	// make a new node
-	// add the last two nodes to the last node
-	// add the new node to the array
-	// again
+}
+
+func reduceOnePair(nodeList []Node) {
+	a, b, nodeList := nodeList[len(nodeList)-1], nodeList[len(nodeList)-2], nodeList[:len(nodeList)-2]
+	new := NewNode(Value{Node: true}, a.rate+b.rate, &b, &a)
+	nodeList = append(nodeList, new)
+}
+
+func (b *BTree) Build(nodeList []Node) {
+	for len(nodeList) > 1 {
+		sortNodeList(nodeList)
+		reduceOnePair(nodeList)
+	}
+	b.head = &nodeList[0]
 }
 
 func (n *Node) Traverse(res string) string {
@@ -55,9 +63,9 @@ func DefaultNode() Node {
 	}
 }
 
-func NewNode(value rune, rate float64, left, right *Node) Node {
+func NewNode(value Value, rate float64, left, right *Node) Node {
 	return Node{
-		value: Value{Rune: value},
+		value: value,
 		rate:  rate,
 		left:  left,
 		right: right,
