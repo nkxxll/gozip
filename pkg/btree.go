@@ -134,7 +134,7 @@ func DefaultNode() Node {
 
 func NewNode(value Value, rate float64, left, right *Node) Node {
 	// I am lazy
-	if value.Node == nil {
+	if !value.Node {
 		value.Node = false
 	}
 	return Node{
