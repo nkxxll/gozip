@@ -23,7 +23,7 @@ type BTree struct {
 
 // todo this is not optimal string and traverse are the same
 func (b *BTree) String() string {
-	return b.Traverse()
+	return b.head.Traverse("", 0)
 }
 
 func (n *Node) String() string {
@@ -47,6 +47,7 @@ func (b *BTree) Traverse() string {
 }
 
 func (n *Node) Eq(other *Node) bool {
+	// fixme: node is not defined
 	if n.value.Node == true && other.value.Node == true {
 		return true
 	}
@@ -93,16 +94,19 @@ func sortNodeList(nodeList []Node) {
 	})
 }
 
-func reduceOnePair(nodeList []Node) {
-	a, b, nodeList := nodeList[len(nodeList)-1], nodeList[len(nodeList)-2], nodeList[:len(nodeList)-2]
+func reduceOnePair(nodeList []Node) []Node {
+	var a, b Node
+	a, b, nodeList = nodeList[len(nodeList)-1], nodeList[len(nodeList)-2], nodeList[:len(nodeList)-2]
 	new := NewNode(Value{Node: true}, a.rate+b.rate, &b, &a)
 	nodeList = append(nodeList, new)
+	return nodeList
 }
 
 func (b *BTree) Build(nodeList []Node) {
 	for len(nodeList) > 1 {
 		sortNodeList(nodeList)
-		reduceOnePair(nodeList)
+		fmt.Println(nodeList)
+		nodeList = reduceOnePair(nodeList)
 	}
 	b.head = &nodeList[0]
 }
@@ -130,7 +134,7 @@ func DefaultNode() Node {
 
 func NewNode(value Value, rate float64, left, right *Node) Node {
 	// I am lazy
-	if !value.Node {
+	if value.Node == nil {
 		value.Node = false
 	}
 	return Node{
