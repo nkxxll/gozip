@@ -27,10 +27,12 @@ func TestBuildTree(t *testing.T) {
 	chars[4] = NewNode(Value{Rune: 'e'}, 6, nil, nil)
 	b := DefaultBTree()
 	b.Build(chars)
-	res := b.Traverse()
-	exp := "abcde"
-	if res != exp {
-		t.Fatalf("res: %s is not %s", res, exp)
+	// build e
+	e := DefaultBTree()
+	// make the nodes
+	e.head = nil // some node ...
+	if !b.Eq(e) {
+		t.Fatalf("Btree res: %s was not equal to exp: %s", b.String(), e.String())
 	}
 }
 

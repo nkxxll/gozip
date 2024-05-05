@@ -1,6 +1,9 @@
 package btree
 
-import "sort"
+import (
+	"fmt"
+	"sort"
+)
 
 type Value struct {
 	Rune rune
@@ -18,8 +21,70 @@ type BTree struct {
 	head *Node
 }
 
+// todo this is not optimal string and traverse are the same
+func (b *BTree) String() string {
+	return b.Traverse()
+}
+
+func (n *Node) String() string {
+	var type_ string
+	if n.value.Node {
+		type_ = "node"
+	} else {
+		type_ = "char"
+	}
+	var value string
+	if !n.value.Node {
+		value = string(n.value.Rune)
+	} else {
+		value = "n.a."
+	}
+	return fmt.Sprintf("<type: %s, value: %s, rate: %f>", type_, value, n.rate)
+}
+
 func (b *BTree) Traverse() string {
-	return b.head.Traverse("")
+	return b.head.Traverse("", 0)
+}
+
+func (n *Node) Eq(other *Node) bool {
+	if n.value.Node == true && other.value.Node == true {
+		return true
+	}
+	if n.value.Node == true || other.value.Node == true {
+		// one of the nodes is a placeholder node not a leaf
+		return false
+	}
+	if n.value.Rune == other.value.Rune {
+		return true
+	}
+	return false
+}
+
+func (b *BTree) Eq(other *BTree) bool {
+	return b.head.recurseEq(other.head)
+}
+
+func (n *Node) recurseEq(other *Node) bool {
+	res := false
+	if !n.Eq(other) {
+		return false
+	}
+	if n.left == nil && n.right == nil && other.left == nil && other.right == nil {
+		return true
+	}
+	if n.left != nil && other.left != nil {
+		res = n.left.recurseEq(other.left)
+		if res == false {
+			return false
+		}
+	}
+	if n.right != nil && other.right != nil {
+		res = n.right.recurseEq(other.right)
+		if res == false {
+			return false
+		}
+	}
+	return res
 }
 
 func sortNodeList(nodeList []Node) {
@@ -42,15 +107,15 @@ func (b *BTree) Build(nodeList []Node) {
 	b.head = &nodeList[0]
 }
 
-func (n *Node) Traverse(res string) string {
+func (n *Node) Traverse(res string, depth uint) string {
 	if n == nil {
 		return res
 	}
 	if n.value.Node == false {
-		res += string(n.value.Rune)
+		res += n.String()
 	}
-	res = n.left.Traverse(res)
-	res = n.right.Traverse(res)
+	res = n.left.Traverse(res, depth+1)
+	res = n.right.Traverse(res, depth+1)
 	return res
 }
 
@@ -64,6 +129,10 @@ func DefaultNode() Node {
 }
 
 func NewNode(value Value, rate float64, left, right *Node) Node {
+	// I am lazy
+	if !value.Node {
+		value.Node = false
+	}
 	return Node{
 		value: value,
 		rate:  rate,
