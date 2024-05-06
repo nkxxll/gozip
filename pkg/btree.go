@@ -2,6 +2,7 @@ package btree
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 )
 
@@ -94,6 +95,81 @@ func sortNodeList(nodeList []Node) {
 	})
 }
 
+type Byte struct {
+	Val    int
+	Length int
+}
+
+func reverse(current int, length int) int {
+	res := 0
+	for length != 0 {
+		res = (res << 1) | (current & 1)
+		current >>= current
+		length -= 1
+	}
+	return res
+}
+
+func (b *BTree) Encode(chars []rune) []byte {
+	cache := make(map[rune]Byte, 256)
+	// this is not so performant for now
+	res := []byte{}
+	current := 0
+	totoalLength := 0
+	for _, char := range chars {
+		bi, ok := cache[char]
+		if !ok {
+			val, length := b.FindChar(char)
+			bi = Byte{Val: val, Length: length}
+			cache[char] = bi
+		}
+		current = current<<bi.Length | bi.Val
+		totoalLength += bi.Length
+	}
+	for current != 0 {
+		res = append(res, byte(current&0xff))
+		current = current >> 8
+	}
+	slices.Reverse(res)
+	return res
+}
+
+func (n *Node) EncodeTraverse(char rune, b int) (int, bool) {
+	if n.value.Node == false && n.value.Rune != char {
+		return b >> 1, false
+	}
+	if n.value.Node == false && n.value.Rune == char {
+		return b, true
+	}
+	b, found := n.left.EncodeTraverse(char, (b<<1)|1)
+	if found {
+		return b, true
+	}
+	b, found = n.right.EncodeTraverse(char, (b << 1))
+	if found {
+		return b, true
+	}
+	return b >> 1, false
+}
+
+func getMsb(number int) int {
+	if number == 0 {
+		return 0
+	}
+	len := 0
+	for number != 0 {
+		number = number >> 1
+		len += 1
+	}
+	return len
+}
+
+func (b *BTree) FindChar(char rune) (int, int) {
+	res, _ := b.head.EncodeTraverse(char, 1)
+	msb := getMsb(res)
+	return res & ((1 << (msb - 1)) - 1), msb - 1
+}
+
 func reduceOnePair(nodeList []Node) []Node {
 	var a, b Node
 	a, b, nodeList = nodeList[len(nodeList)-1], nodeList[len(nodeList)-2], nodeList[:len(nodeList)-2]
@@ -105,10 +181,8 @@ func reduceOnePair(nodeList []Node) []Node {
 func (b *BTree) Build(nodeList []Node) {
 	for len(nodeList) > 1 {
 		sortNodeList(nodeList)
-		fmt.Println(nodeList)
 		nodeList = reduceOnePair(nodeList)
 	}
-	fmt.Println("head is" + nodeList[0].String())
 	b.head = &nodeList[0]
 }
 

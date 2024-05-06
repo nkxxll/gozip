@@ -1,6 +1,7 @@
 package btree
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -156,4 +157,68 @@ func TestBuildTree(t *testing.T) {
 	if !b.Eq(&e) {
 		t.Fatalf("Btree res: %s was not equal to exp: %s", b.String(), e.String())
 	}
+}
+
+func TestEncodeTraverse(t *testing.T) {
+	e := DefaultBTree()
+	epxch := make([]Node, 5)
+	epxch[0] = NewNode(Value{Rune: 'a', Node: false}, 50, nil, nil)
+	epxch[1] = NewNode(Value{Rune: 'b', Node: false}, 25, nil, nil)
+	epxch[2] = NewNode(Value{Rune: 'c', Node: false}, 12, nil, nil)
+	epxch[3] = NewNode(Value{Rune: 'd', Node: false}, 7, nil, nil)
+	epxch[4] = NewNode(Value{Rune: 'e', Node: false}, 6, nil, nil)
+	extra := make([]Node, 5)
+	extra[3] = NewNode(Value{Node: true}, 13, &epxch[3], &epxch[4])
+	extra[2] = NewNode(Value{Node: true}, 25, &extra[3], &epxch[2])
+	extra[1] = NewNode(Value{Node: true}, 50, &epxch[1], &extra[2])
+	extra[0] = NewNode(Value{Node: true}, 100, &epxch[0], &extra[1])
+	e.head = &extra[0] // some node ...
+	exp := 0b0010
+
+	bi, length := e.FindChar('e')
+	if bi != exp || length != 4 {
+		t.Fatalf("Btree res: %b was not equal to exp: %b", bi, exp)
+	}
+}
+
+func TestBin(t *testing.T) {
+	mask := ((1 << 4) - 1)
+	res := 0b10010 & mask
+	if res != 2 {
+		t.Fatalf("what the fuck!!!%b, %b", mask, res)
+	}
+}
+
+func TestMsb(t *testing.T) {
+	integer := 0b100001
+	length := getMsb(integer)
+	if length != 6 {
+		t.Fatalf("length %d", length)
+	}
+}
+
+func TestEncoding(t *testing.T) {
+	e := DefaultBTree()
+	extra_char := make([]Node, 5)
+	extra_char[0] = NewNode(Value{Rune: 'a', Node: false}, 50, nil, nil)
+	extra_char[1] = NewNode(Value{Rune: 'b', Node: false}, 25, nil, nil)
+	extra_char[2] = NewNode(Value{Rune: 'c', Node: false}, 12, nil, nil)
+	extra_char[3] = NewNode(Value{Rune: 'd', Node: false}, 7, nil, nil)
+	extra_char[4] = NewNode(Value{Rune: 'e', Node: false}, 6, nil, nil)
+	extra := make([]Node, 5)
+	extra[3] = NewNode(Value{Node: true}, 13, &extra_char[3], &extra_char[4])
+	extra[2] = NewNode(Value{Node: true}, 25, &extra[3], &extra_char[2])
+	extra[1] = NewNode(Value{Node: true}, 50, &extra_char[1], &extra[2])
+	extra[0] = NewNode(Value{Node: true}, 100, &extra_char[0], &extra[1])
+	e.head = &extra[0] // some node ...
+	// fixme if the first is a 0000001 then the length has be be known
+	exp := []byte{byte(0b101000), byte(0b00110010)}
+	res := e.Encode([]rune{'a', 'b', 'c', 'd', 'e'})
+	if !slices.Equal(res, exp) {
+		t.Fatalf("Btree res: %b was not equal to exp: %b", res, exp)
+	}
+}
+
+func TestDecode(t *testing.T) {
+	// todo
 }
