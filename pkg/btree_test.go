@@ -108,13 +108,10 @@ func TestBuildEndless(t *testing.T) {
 	b.Build(chars)
 }
 
-func TestBuildTree(t *testing.T) {
-	chars := make([]Node, 5)
-	chars[0] = NewNode(Value{Rune: 'a'}, 50, nil, nil)
-	chars[1] = NewNode(Value{Rune: 'b'}, 25, nil, nil)
-	chars[2] = NewNode(Value{Rune: 'c'}, 12, nil, nil)
-	chars[3] = NewNode(Value{Rune: 'd'}, 7, nil, nil)
-	chars[4] = NewNode(Value{Rune: 'e'}, 6, nil, nil)
+func TestBuildSimpleTree(t *testing.T) {
+	chars := make([]Node, 2)
+	chars[0] = NewNode(Value{Rune: 'a', Node: false}, 50, nil, nil)
+	chars[1] = NewNode(Value{Rune: 'b', Node: false}, 25, nil, nil)
 	b := DefaultBTree()
 	b.Build(chars)
 	// build e
@@ -122,17 +119,40 @@ func TestBuildTree(t *testing.T) {
 	// make the nodes
 
 	epxch := make([]Node, 5)
-	epxch[0] = NewNode(Value{Rune: 'a'}, 50, nil, nil)
-	epxch[1] = NewNode(Value{Rune: 'b'}, 25, nil, nil)
-	epxch[2] = NewNode(Value{Rune: 'c'}, 12, nil, nil)
-	epxch[3] = NewNode(Value{Rune: 'd'}, 7, nil, nil)
-	epxch[4] = NewNode(Value{Rune: 'e'}, 6, nil, nil)
+	epxch[0] = NewNode(Value{Rune: 'a', Node: false}, 50, nil, nil)
+	epxch[1] = NewNode(Value{Rune: 'b', Node: false}, 25, nil, nil)
+	extra := NewNode(NewValue(true, ' '), 75, &epxch[0], &epxch[1])
+	e.head = &extra
+	if !b.Eq(&e) {
+		t.Fatalf("Btree res: %s was not equal to exp: %s", b.String(), e.String())
+	}
+}
+
+func TestBuildTree(t *testing.T) {
+	chars := make([]Node, 5)
+	chars[0] = NewNode(Value{Rune: 'a', Node: false}, 50, nil, nil)
+	chars[1] = NewNode(Value{Rune: 'b', Node: false}, 25, nil, nil)
+	chars[2] = NewNode(Value{Rune: 'c', Node: false}, 12, nil, nil)
+	chars[3] = NewNode(Value{Rune: 'd', Node: false}, 7, nil, nil)
+	chars[4] = NewNode(Value{Rune: 'e', Node: false}, 6, nil, nil)
+	b := DefaultBTree()
+	b.Build(chars)
+	// build e
+	e := DefaultBTree()
+	// make the nodes
+
+	epxch := make([]Node, 5)
+	epxch[0] = NewNode(Value{Rune: 'a', Node: false}, 50, nil, nil)
+	epxch[1] = NewNode(Value{Rune: 'b', Node: false}, 25, nil, nil)
+	epxch[2] = NewNode(Value{Rune: 'c', Node: false}, 12, nil, nil)
+	epxch[3] = NewNode(Value{Rune: 'd', Node: false}, 7, nil, nil)
+	epxch[4] = NewNode(Value{Rune: 'e', Node: false}, 6, nil, nil)
 	extra := make([]Node, 5)
-	extra[3] = NewNode(Value{Node: true}, 13, &epxch[4], &epxch[3])
+	extra[3] = NewNode(Value{Node: true}, 13, &epxch[3], &epxch[4])
 	extra[2] = NewNode(Value{Node: true}, 25, &extra[3], &epxch[2])
 	extra[1] = NewNode(Value{Node: true}, 50, &epxch[1], &extra[2])
 	extra[0] = NewNode(Value{Node: true}, 100, &epxch[0], &extra[1])
-	e.head = nil // some node ...
+	e.head = &extra[0] // some node ...
 	if !b.Eq(&e) {
 		t.Fatalf("Btree res: %s was not equal to exp: %s", b.String(), e.String())
 	}

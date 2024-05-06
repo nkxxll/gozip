@@ -108,6 +108,7 @@ func (b *BTree) Build(nodeList []Node) {
 		fmt.Println(nodeList)
 		nodeList = reduceOnePair(nodeList)
 	}
+	fmt.Println("head is" + nodeList[0].String())
 	b.head = &nodeList[0]
 }
 
@@ -132,11 +133,19 @@ func DefaultNode() Node {
 	}
 }
 
-func NewNode(value Value, rate float64, left, right *Node) Node {
-	// I am lazy
-	if !value.Node {
-		value.Node = false
+func NewValue(node bool, value rune) Value {
+	if node == true {
+		return Value{
+			Node: true,
+		}
 	}
+	return Value{
+		Node: false,
+		Rune: value,
+	}
+}
+
+func NewNode(value Value, rate float64, left, right *Node) Node {
 	return Node{
 		value: value,
 		rate:  rate,
